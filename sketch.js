@@ -46,7 +46,9 @@ class SoundButton {
 
   draw() {
     fill(20, 20, 20, 200);
+    stroke(255);
     rect(width - this.width, 0, width, this.height);
+    stroke(0);
     fill(255);
     textSize(20);
     if (!this.sound.isPlaying()) {
@@ -62,7 +64,9 @@ class Drop {
   constructor() {
     this.x = random(width);
     this.y = random(height);
-    this.speed = random(5, 15);
+    this.minSpeed = 5;
+    this.maxSpeed = 15;
+    this.speed = random(this.minSpeed, this.maxSpeed);
   }
 
   move() {
@@ -74,8 +78,9 @@ class Drop {
   }
 
   draw() {
-    stroke(100, 100, 255, 190);
-    strokeWeight(map(this.speed, 5, 15, 1, 4));
+    let brightness = map(this.speed, this.minSpeed, this.maxSpeed, 90, 170);
+    stroke(brightness, brightness, 255, 200);
+    strokeWeight(map(this.speed, this.minSpeed, this.maxSpeed, 1, 4));
     line(this.x, this.y, this.x, this.y + 10);
   }
 
@@ -110,6 +115,7 @@ class Box {
   }
 
   draw() {
+    stroke(255);
     fill(180, 180 + this.alpha, 180, 50 + (this.alpha));
     rect(this.x, this.y, this.width, this.height, 10);
   }
