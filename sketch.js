@@ -96,7 +96,9 @@ class Box {
     this.x = width / 2 - this.width / 2;
     this.y = height / 2;
     this.speed = 1;
-    this.alpha = 0;
+    this.maxAlpha = 100;
+    this.minAlpha = 10;
+    this.alpha = this.minAlpha;
   }
 
   move() {
@@ -108,8 +110,15 @@ class Box {
   }
 
   draw() {
-    fill(180, 180 + this.alpha, 180, 70 + (this.alpha / 1.5));
+    fill(180, 180 + this.alpha, 180, 50 + (this.alpha));
     rect(this.x, this.y, this.width, this.height, 10);
+  }
+
+  changeAlpha(inside) {
+    if (inside && this.alpha < this.maxAlpha)
+      this.alpha += 4;
+    else if (box.alpha > this.minAlpha)
+      this.alpha -= 3;
   }
 }
 
@@ -125,11 +134,14 @@ class Feather {
   }
 
   move() {
+    // lift if mouse pressed, else fall
     if (mouseIsPressed && this.speed > this.maxUpliftSpeed)
       this.speed -= 0.1;
     else if (this.speed < this.maxFallSpeed)
       this.speed += 0.05;
+    // change pos
     this.y += this.speed;
+    // stop if out of bounds
     if (this.y > height) {
       this.y = height;
       this.speed = 0;
@@ -153,10 +165,10 @@ function drawBox() {
   box.move();
   box.draw();
   middle = feather.y + feather.img.height / 2;
-  if (middle > box.y && middle < box.y + box.height && box.alpha < 100)
-    box.alpha += 4;
-  else if (box.alpha > 10)
-    box.alpha -= 3;
+  if (middle > box.y && middle < box.y + box.height)
+    box.changeAlpha(inside = true);
+  else
+    box.changeAlpha(inside = false);
 }
 
 function drawFeather() {
