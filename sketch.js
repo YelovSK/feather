@@ -1,14 +1,18 @@
 let drops = Array(200);
 
-function setup() {
-  createCanvas(400, 500);
+function preload() {
   bgImg = loadImage('celeste.jpg');
-  featherImg = loadImage('transparent.');
-  rainSound = loadSound('sound.mp3');
-  frameRate(80);
+  featherImg = loadImage('transparent.png');
+}
+
+function setup() {
+  rainSound = loadSound('sound.mp3'); // broken in preload for some reason
+  createCanvas(400, 500);
   createDrops();
   box = new Box();
   feather = new Feather();
+  soundButton = new SoundButton();
+  frameRate(80);
 }
 
 function createDrops() {
@@ -19,10 +23,38 @@ function createDrops() {
 
 function draw() {
   image(bgImg, 0, 0);
-  drawSoundButton();
+  soundButton.draw();
   drawRain();
   drawBox();
   drawFeather();
+}
+
+class SoundButton {
+
+  constructor() {
+    this.sound = rainSound;
+    this.width = 100;
+    this.height = 25;
+  }
+
+  toggle() {
+    if (this.sound.isPlaying())
+      this.sound.stop();
+    else
+      this.sound.loop();
+  }
+
+  draw() {
+    fill(20, 20, 20, 200);
+    rect(width - this.width, 0, width, this.height);
+    fill(255);
+    textSize(20);
+    if (!this.sound.isPlaying()) {
+      text('Sound off', width - this.width + 8, this.height - 5);
+    } else {
+      text('Sound on', width - this.width + 8, this.height - 5);
+    }
+  }
 }
 
 class Drop {
@@ -84,8 +116,8 @@ class Box {
 class Feather {
 
   constructor() {
-    this.img = loadImage('transparent.png');
-    this.x = width / 2 - 100;
+    this.img = featherImg;
+    this.x = width / 2 - this.img.width / 2;
     this.y = height / 2;
     this.speed = 0;
     this.maxFallSpeed = 3;
@@ -112,16 +144,9 @@ class Feather {
   }
 }
 
-function drawSoundButton() {
-  fill(20, 20, 20, 200);
-  rect(width - 100, 0, width, 25);
-  fill(255);
-  textSize(20);
-  if (!rainSound.isPlaying()) {
-    text('Sound off', width - 90, 20);
-  } else {
-    text('Sound on', width - 90, 20);
-  }
+function mousePressed() {
+  if (mouseX > width - 100 && mouseY < 25)
+    soundButton.toggle();
 }
 
 function drawBox() {
@@ -143,14 +168,5 @@ function drawRain() {
   for (let i = 0; i < drops.length; i++) {
     drops[i].move();
     drops[i].draw();
-  }
-}
-
-function mousePressed() {
-  if (mouseX > width - 100 && mouseY < 25) {
-    if (rainSound.isPlaying())
-      rainSound.stop();
-    else
-      rainSound.loop();
   }
 }
