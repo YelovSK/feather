@@ -1,12 +1,12 @@
 let drops = Array(200);
 
 function preload() {
-  bgImg = loadImage('celeste.jpg');
-  featherImg = loadImage('transparent.png');
+  bgImg = loadImage('assets/background.jpg');
+  featherImg = loadImage('assets/feather.png');
 }
 
 function setup() {
-  rainSound = loadSound('sound.mp3'); // broken in preload for some reason
+  rainSound = loadSound('assets/rain.mp3'); // broken in preload for some reason
   createCanvas(400, 500);
   createDrops();
   box = new Box();
