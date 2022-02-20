@@ -1,4 +1,5 @@
-let drops = Array(200);
+let drops = Array(300);
+let blurOn = false; // slow af on Firefox
 
 function preload() {
   bgImg = loadImage('assets/background.jpg');
@@ -12,6 +13,7 @@ function setup() {
   box = new Box();
   feather = new Feather();
   soundButton = new SoundButton();
+  blurButton = new BlurButton();
   frameRate(80);
 }
 
@@ -22,11 +24,16 @@ function createDrops() {
 }
 
 function draw() {
+  if (blurOn)
+    drawingContext.filter = "blur(5px)";
   image(bgImg, 0, 0);
-  soundButton.draw();
   drawRain();
+  if (blurOn)
+    drawingContext.filter = "blur(0px)";
   drawBox();
   drawFeather();
+  soundButton.show();
+  blurButton.show();
 }
 
 class SoundButton {
@@ -44,18 +51,49 @@ class SoundButton {
       this.sound.loop();
   }
 
-  draw() {
+  show() {
     fill(20, 20, 20, 200);
     stroke(255);
     rect(width - this.width, 0, width, this.height);
     stroke(0);
     fill(255);
     textSize(20);
+    let txt = "";
     if (!this.sound.isPlaying()) {
-      text('Sound off', width - this.width + 8, this.height - 5);
+      txt = "Sound off";
     } else {
-      text('Sound on', width - this.width + 8, this.height - 5);
+      txt = "Sound on";
     }
+    text(txt, width - this.width + 8, this.height - 5);
+  }
+}
+
+class BlurButton {
+
+  constructor() {
+    this.width = 80;
+    this.height = 25;
+  }
+
+  toggle() {
+    blurOn = !blurOn;
+    drawingContext.filter = "none";
+  }
+
+  show() {
+    fill(20, 20, 20, 200);
+    stroke(255);
+    rect(0, 0, this.width, this.height);
+    stroke(0);
+    fill(255);
+    textSize(20);
+    let txt = "";
+    if (blurOn) {
+      txt = "DoF on";
+    } else {
+      txt = "DoF off";
+    }
+    text(txt, 8, this.height - 5);
   }
 }
 
@@ -64,9 +102,13 @@ class Drop {
   constructor() {
     this.x = random(width);
     this.y = random(height);
-    this.minSpeed = 5;
-    this.maxSpeed = 15;
-    this.speed = random(this.minSpeed, this.maxSpeed);
+    this.z = random(0, 10);
+    this.weight = map(this.z, 0, 10, 1, 3);
+    this.len = map(this.z, 0, 10, 3, 8);
+    this.splashSize = map(this.z, 0, 10, 0.5, 1)
+    this.minSpeed = 2;
+    this.maxSpeed = 10;
+    this.speed = map(this.z, 0, 10, this.minSpeed, this.maxSpeed);
   }
 
   move() {
@@ -77,16 +119,20 @@ class Drop {
     }
   }
 
-  draw() {
-    let brightness = map(this.speed, this.minSpeed, this.maxSpeed, 90, 170);
-    stroke(brightness, brightness, 255, 200);
-    strokeWeight(map(this.speed, this.minSpeed, this.maxSpeed, 1, 4));
-    line(this.x, this.y, this.x, this.y + 10);
+  show() {
+    blur = map(this.z, 0, 10, 4, 0);
+    if (blurOn)
+      drawingContext.filter = "blur(" + blur + "1px)";
+    stroke(170, 170, 255, 110 + this.z * 4);
+    strokeWeight(this.weight);
+    line(this.x, this.y, this.x, this.y + this.len);
   }
 
   drawSplash() {
-    for (const x of [+7, -7]) {
-      for (const y of [-7, 0]) {
+    for (let x of [-9, -2, 2, 9]) {
+      for (let y of [-4, -10, -10, -4]) {
+        x *= this.splashSize;
+        y *= this.splashSize;
         line(this.x, height, this.x + x, height + y);
       }
     }
@@ -114,7 +160,7 @@ class Box {
     this.y += this.speed;
   }
 
-  draw() {
+  show() {
     stroke(255);
     fill(180, 180 + this.alpha, 180, 50 + (this.alpha));
     rect(this.x, this.y, this.width, this.height, 10);
@@ -157,19 +203,21 @@ class Feather {
     }
   }
 
-  draw() {
+  show() {
     image(this.img, this.x, this.y);
   }
 }
 
 function mousePressed() {
-  if (mouseX > width - 100 && mouseY < 25)
+  if (mouseX > width - soundButton.width && mouseY < 25)
     soundButton.toggle();
+  else if (mouseX < blurButton.width && mouseY < blurButton.height)
+    blurButton.toggle();
 }
 
 function drawBox() {
   box.move();
-  box.draw();
+  box.show();
   middle = feather.y + feather.img.height / 2;
   if (middle > box.y && middle < box.y + box.height)
     box.changeAlpha(inside = true);
@@ -179,12 +227,12 @@ function drawBox() {
 
 function drawFeather() {
   feather.move();
-  feather.draw();
+  feather.show();
 }
 
 function drawRain() {
   for (let i = 0; i < drops.length; i++) {
     drops[i].move();
-    drops[i].draw();
+    drops[i].show();
   }
 }
